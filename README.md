@@ -11,6 +11,7 @@ Max values over the last dimension of a three dimensional array. Keywords: sas s
 
           1. Base SAS/WPS
           2. WPS/PROC R or SAS/IML/R
+          3. Rick Wicklin IML solution on end
 
     see
     https://tinyurl.com/ycgjsmqs
@@ -157,4 +158,31 @@ Max values over the last dimension of a three dimensional array. Keywords: sas s
     import r=want  data=wrk.wantwps;
     run;quit;
     ');
+    
+    
+        Rick Wicklin via listserv.uga.edu
+
+    We can solve this problem more generally and more compactly. Suppose
+    there are p variables and you want the maximum product of k.  (Roger has
+    hard-coded the case p=4 and k=3.)  You can use the ALLCOMB function in SAS
+    to generate all the combinations of p objects taken k at a time. Use
+    these as indices into the array of variables. Now take the maximum product of the possible combina
+    tions for each observation. In SAS/IML, this can be done as follows:
+
+    proc iml;
+    use have; read all var _num_ into X; close;
+    p = ncol(X);
+    k = 3;
+    c = allcomb(p, k);  /* combinations of p items taken k at a time */
+
+    maxMul = j(nrow(X), 1);
+    do i = 1 to nrow(X);
+       Y = X[i,];                   /* get i_th row */
+       M = shape(Y[c], nrow(c), k); /* all combinations of elements */
+       maxMul[i] = max( M[,#] );    /* max of product of rows */
+    end;
+
+    print maxMul;
+
+
 
